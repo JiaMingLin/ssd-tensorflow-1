@@ -107,12 +107,12 @@ def main():
     print('[i] Training data: ', args.training_data)
     print('[i] Output dir:    ', args.output_dir)
     print('[i] Batch size:    ', args.batch_size)
-
+    video_root = '../data/ucf24'
     #---------------------------------------------------------------------------
     # Create the output directory
     #---------------------------------------------------------------------------
-    if not os.path.exists(args.output_dir):
-        os.makedirs(args.output_dir)
+    if not os.path.exists(os.path.join(video_root, args.output_dir)):
+        os.makedirs(os.path.join(video_root, args.output_dir))
 
     #---------------------------------------------------------------------------
     # Load the graph and the training data
@@ -137,8 +137,6 @@ def main():
     #---------------------------------------------------------------------------
     # Run Detection
     #---------------------------------------------------------------------------
-
-    video_root = '../data/ucf24'
     test_output = args.output_dir
     with open(os.path.join(video_root, 'splitfiles/testlist01.txt')) as fin:
         video_paths = [os.path.join(video_root, 'rgb-images', line[:-1]) for line in fin.readlines()]
