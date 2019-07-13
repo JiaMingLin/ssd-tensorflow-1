@@ -144,7 +144,7 @@ def main():
     with open(os.path.join(video_root, 'splitfiles/testlist01.txt')) as fin:
         video_paths = [os.path.join(video_root, 'rgb-images', line[:-1]) for line in fin.readlines()]
 
-    with tf.Session as sess:
+    with tf.Session() as sess:
         for video in tqdm(video_paths, total = len(video_paths)):
             # video: frame folder
             frames = os.listdir(video)
