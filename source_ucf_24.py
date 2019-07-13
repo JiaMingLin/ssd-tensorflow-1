@@ -181,7 +181,7 @@ class UCF24Source:
         #-----------------------------------------------------------------------
         train_annot = []
         train_samples = []
-        train_annot = self.__build_annotation_list(data_dir)[:1000]
+        train_annot = self.__build_annotation_list(data_dir)
         train_samples = self.__build_sample_list(data_dir, train_annot)
 
         #-----------------------------------------------------------------------
