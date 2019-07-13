@@ -154,7 +154,7 @@ def main():
             video_name = video.split('/')[-2:]
             video_name[-1] = video_name[-1] + '.mp4'
             video_save_path = os.path.join(video_root, test_output, *video_name)
-            if not os.path.exists(os.path.join(video_root, args.output_dir)):
+            if not os.path.exists(os.path.join(video_root, test_output, video_name[0])):
                 os.makedirs(os.path.join(video_root, test_output, video_name[0]))
     
             save_to_video(detected_frames, video_save_path)
