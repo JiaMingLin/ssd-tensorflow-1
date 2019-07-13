@@ -39,28 +39,29 @@ if sys.version_info[0] < 3:
 def run(files, img_input_tensor, result_tensor, batch_size = 32):
     output_imgs = []
 
-    for i in range(0, len(files), batch_size):
-        batch_names = files[i:i+batch_size]
-        batch_imgs = []
-        batch = []
-        for f in batch_names:
-            img = cv2.imread(f)
-            batch_imgs.append(img)
-            img = cv2.resize(img, (300, 300))
-            batch.append(img)
+    with tf.Session() as sess:
+        for i in range(0, len(files), batch_size):
+            batch_names = files[i:i+batch_size]
+            batch_imgs = []
+            batch = []
+            for f in batch_names:
+                img = cv2.imread(f)
+                batch_imgs.append(img)
+                img = cv2.resize(img, (300, 300))
+                batch.append(img)
 
-        batch = np.array(batch)
-        feed = {img_input_tensor: batch}
-        enc_boxes = sess.run(result_tensor, feed_dict=feed)
+            batch = np.array(batch)
+            feed = {img_input_tensor: batch}
+            enc_boxes = sess.run(result_tensor, feed_dict=feed)
 
-        for i in range(len(batch_names)):
-            boxes = decode_boxes(enc_boxes[i], anchors, 0.5, lid2name, None)
-            boxes = suppress_overlaps(boxes)[:200]
-            name = os.path.basename(batch_names[i])
+            for i in range(len(batch_names)):
+                boxes = decode_boxes(enc_boxes[i], anchors, 0.5, lid2name, None)
+                boxes = suppress_overlaps(boxes)[:200]
+                name = os.path.basename(batch_names[i])
 
-            for box in boxes:
-                draw_box(batch_imgs[i], box[1], colors[box[1].label])
-            output_imgs.append(batch_imgs[i])
+                for box in boxes:
+                    draw_box(batch_imgs[i], box[1], colors[box[1].label])
+                output_imgs.append(batch_imgs[i])
 
                 #with open(os.path.join(args.output_dir, name+'.txt'), 'w') as f:
                 #    for box in boxes:
