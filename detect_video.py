@@ -147,7 +147,7 @@ def main():
     with tf.Session() as sess:
         for video in tqdm(video_paths, total = len(video_paths)):
             # video: frame folder
-            frames = os.listdir(video)
+            frames = sorted(os.listdir(video), key = lambda file: int(file[:-4]))
             frame_paths = [os.path.join(video, frame) for frame in frames]
             detected_frames = run(frame_paths, img_input, result, data, sess, batch_size = args.batch_size)
 
