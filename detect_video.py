@@ -139,7 +139,7 @@ def main():
     #---------------------------------------------------------------------------
 
     video_root = '../data/ucf24'
-    test_output = 'detect_output'
+    test_output = args.output_dir
     with open(os.path.join(video_root, 'splitfiles/testlist01.txt')) as fin:
         video_paths = [os.path.join(video_root, 'rgb-images', line[:-1]) for line in fin.readlines()]
 
