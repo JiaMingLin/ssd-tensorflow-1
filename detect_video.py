@@ -50,8 +50,8 @@ def run(files, img_input_tensor, result_tensor, batch_size = 32):
             batch.append(img)
 
         batch = np.array(batch)
-        feed = {img_input: batch}
-        enc_boxes = sess.run(result, feed_dict=feed)
+        feed = {img_input_tensor: batch}
+        enc_boxes = sess.run(result_tensor, feed_dict=feed)
 
         for i in range(len(batch_names)):
             boxes = decode_boxes(enc_boxes[i], anchors, 0.5, lid2name, None)
@@ -144,7 +144,7 @@ def main():
     for video in tqdm(video_paths, total = len(video_paths)):
         # video: frame folder
         frames = os.listdir(video)
-        frame_paths = [os.path.join(video, frame), for frame in frames]
+        frame_paths = [os.path.join(video, frame) for frame in frames]
         detected_frames = run(frame_paths, img_input, result, batch_size = args.batch_size)
 
         video_name = video.split('/')[:-2]
