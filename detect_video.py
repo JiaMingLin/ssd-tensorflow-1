@@ -149,7 +149,7 @@ def main():
         frame_paths = [os.path.join(video, frame) for frame in frames]
         detected_frames = run(frame_paths, img_input, result, data, batch_size = args.batch_size)
 
-        video_name = video.split('/')[:-2]
+        video_name = video.split('/')[-2:]
         video_name[-1] = video_name[-1] + '.mp4'
         video_save_path = os.path.join(video_root, test_output, *video_name)
         save_to_video(detected_frames, video_save_path)
