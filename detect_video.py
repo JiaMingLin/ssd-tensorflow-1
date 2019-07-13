@@ -27,6 +27,7 @@ import sys
 import cv2
 import os
 import imageio
+import shutil
 
 from ssdutils import get_anchors_for_preset, decode_boxes, suppress_overlaps
 from utils import draw_box
@@ -36,7 +37,7 @@ if sys.version_info[0] < 3:
     print("This is a Python 3 program. Use Python 3 or higher.")
     sys.exit(1)
 
-def run(files, img_input_tensor, result_tensor, data, batch_size = 32):
+def run(files, img_input_tensor, result_tensor, data, sess, batch_size = 32):
     output_imgs = []
 
     preset = data['preset']
@@ -44,29 +45,28 @@ def run(files, img_input_tensor, result_tensor, data, batch_size = 32):
     lid2name = data['lid2name']
     anchors = get_anchors_for_preset(preset)
 
-    with tf.Session() as sess:
-        for i in range(0, len(files), batch_size):
-            batch_names = files[i:i+batch_size]
-            batch_imgs = []
-            batch = []
-            for f in batch_names:
-                img = cv2.imread(f)
-                batch_imgs.append(img)
-                img = cv2.resize(img, (300, 300))
-                batch.append(img)
+    for i in range(0, len(files), batch_size):
+        batch_names = files[i:i+batch_size]
+        batch_imgs = []
+        batch = []
+        for f in batch_names:
+            img = cv2.imread(f)
+            batch_imgs.append(img)
+            img = cv2.resize(img, (300, 300))
+            batch.append(img)
 
-            batch = np.array(batch)
-            feed = {img_input_tensor: batch}
-            enc_boxes = sess.run(result_tensor, feed_dict=feed)
+        batch = np.array(batch)
+        feed = {img_input_tensor: batch}
+        enc_boxes = sess.run(result_tensor, feed_dict=feed)
 
-            for i in range(len(batch_names)):
-                boxes = decode_boxes(enc_boxes[i], anchors, 0.5, lid2name, None)
-                boxes = suppress_overlaps(boxes)[:200]
-                name = os.path.basename(batch_names[i])
+        for i in range(len(batch_names)):
+            boxes = decode_boxes(enc_boxes[i], anchors, 0.5, lid2name, None)
+            boxes = suppress_overlaps(boxes)[:200]
+            name = os.path.basename(batch_names[i])
 
-                for box in boxes:
-                    draw_box(batch_imgs[i], box[1], colors[box[1].label])
-                output_imgs.append(batch_imgs[i])
+            for box in boxes:
+                draw_box(batch_imgs[i], box[1], colors[box[1].label])
+            output_imgs.append(batch_imgs[i])
 
                 #with open(os.path.join(args.output_dir, name+'.txt'), 'w') as f:
                 #    for box in boxes:
@@ -115,10 +115,11 @@ def main():
     print('[i] Batch size:    ', args.batch_size)
     video_root = '../data/ucf24'
     #---------------------------------------------------------------------------
-    # Create the output directory
+    # Initilize the output directory
     #---------------------------------------------------------------------------
-    if not os.path.exists(os.path.join(video_root, args.output_dir)):
-        os.makedirs(os.path.join(video_root, args.output_dir))
+    if os.path.exists(os.path.join(video_root, args.output_dir)):
+        shutil.rmtree(os.path.join(video_root, args.output_dir), ignore_errors=False, onerror=None)
+    os.makedirs(os.path.join(video_root, args.output_dir))
 
     #---------------------------------------------------------------------------
     # Load the graph and the training data
@@ -143,16 +144,20 @@ def main():
     with open(os.path.join(video_root, 'splitfiles/testlist01.txt')) as fin:
         video_paths = [os.path.join(video_root, 'rgb-images', line[:-1]) for line in fin.readlines()]
 
-    for video in tqdm(video_paths, total = len(video_paths)):
-        # video: frame folder
-        frames = os.listdir(video)
-        frame_paths = [os.path.join(video, frame) for frame in frames]
-        detected_frames = run(frame_paths, img_input, result, data, batch_size = args.batch_size)
+    with tf.Session as sess:
+        for video in tqdm(video_paths, total = len(video_paths)):
+            # video: frame folder
+            frames = os.listdir(video)
+            frame_paths = [os.path.join(video, frame) for frame in frames]
+            detected_frames = run(frame_paths, img_input, result, data, sess, batch_size = args.batch_size)
 
-        video_name = video.split('/')[-2:]
-        video_name[-1] = video_name[-1] + '.mp4'
-        video_save_path = os.path.join(video_root, test_output, *video_name)
-        save_to_video(detected_frames, video_save_path)
+            video_name = video.split('/')[-2:]
+            video_name[-1] = video_name[-1] + '.mp4'
+            video_save_path = os.path.join(video_root, test_output, *video_name)
+            if not os.path.exists(os.path.join(video_root, args.output_dir)):
+                os.makedirs(os.path.join(video_root, test_output, video_name[0]))
+    
+            save_to_video(detected_frames, video_save_path)
 
 if __name__ == '__main__':
     main()
