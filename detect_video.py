@@ -36,8 +36,13 @@ if sys.version_info[0] < 3:
     print("This is a Python 3 program. Use Python 3 or higher.")
     sys.exit(1)
 
-def run(files, img_input_tensor, result_tensor, batch_size = 32):
+def run(files, img_input_tensor, result_tensor, data, batch_size = 32):
     output_imgs = []
+
+    preset = data['preset']
+    colors = data['colors']
+    lid2name = data['lid2name']
+    anchors = get_anchors_for_preset(preset)
 
     with tf.Session() as sess:
         for i in range(0, len(files), batch_size):
@@ -125,10 +130,6 @@ def main():
 
     with open(args.training_data, 'rb') as f:
         data = pickle.load(f)
-        preset = data['preset']
-        colors = data['colors']
-        lid2name = data['lid2name']
-        anchors = get_anchors_for_preset(preset)
 
     with tf.Session() as sess:
         tf.import_graph_def(graph_def, name='detector')
@@ -146,7 +147,7 @@ def main():
         # video: frame folder
         frames = os.listdir(video)
         frame_paths = [os.path.join(video, frame) for frame in frames]
-        detected_frames = run(frame_paths, img_input, result, batch_size = args.batch_size)
+        detected_frames = run(frame_paths, img_input, result, data, batch_size = args.batch_size)
 
         video_name = video.split('/')[:-2]
         video_name[-1] = video_name[-1] + '.mp4'
